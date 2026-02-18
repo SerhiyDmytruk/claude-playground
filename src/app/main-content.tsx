@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -33,6 +33,15 @@ interface MainContentProps {
 export function MainContent({ user, project }: MainContentProps) {
   const [activeView, setActiveView] = useState<"preview" | "code">("preview");
 
+  // When the mouse enters the top bar, blur the active element if it's inside
+  // an iframe. This prevents the browser from swallowing the first click on the
+  // tab triggers when focus is inside the preview iframe.
+  const handleTopBarPointerEnter = useCallback(() => {
+    if (document.activeElement?.tagName === "IFRAME") {
+      (document.activeElement as HTMLElement).blur();
+    }
+  }, []);
+
   return (
     <FileSystemProvider initialData={project?.data}>
       <ChatProvider projectId={project?.id} initialMessages={project?.messages}>
@@ -59,7 +68,7 @@ export function MainContent({ user, project }: MainContentProps) {
             <ResizablePanel defaultSize={65}>
               <div className="h-full flex flex-col bg-white">
                 {/* Top Bar */}
-                <div className="h-14 border-b border-neutral-200/60 px-6 flex items-center justify-between bg-neutral-50/50">
+                <div className="h-14 border-b border-neutral-200/60 px-6 flex items-center justify-between bg-neutral-50/50" onPointerEnter={handleTopBarPointerEnter}>
                   <Tabs
                     value={activeView}
                     onValueChange={(v) =>
